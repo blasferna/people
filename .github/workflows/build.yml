@@ -28,4 +28,4 @@ jobs:
           author_name: Blas Fernández
           author_email: blasferna@gmail.com
           message: 'update ruc.zip'
-          add: 'tmp/*.zip'
+          add: '.'
