@@ -40,10 +40,8 @@ jobs:
           
       - name: Create database
         run: |
-           psql --host=postgres "create database ruc;"
+           psql --host=127.0.0.1 "create database ruc;"
         env:
-          # The hostname used to communicate with the PostgreSQL service container
-          POSTGRES_HOST: postgres
           # The default PostgreSQL port
           POSTGRES_PORT: 5432
 
@@ -51,18 +49,14 @@ jobs:
         run: |
            psql postgres < ruc.sql
         env:
-          # The hostname used to communicate with the PostgreSQL service container
-          POSTGRES_HOST: postgres
           PGPASSWORD: postgres
           # The default PostgreSQL port
           POSTGRES_PORT: 5432
 
       - name: Export data
         run: |
-           pg_dump --host=postgres  --no-password  --format custom --blobs --verbose --file "tmp/postgres.backup" "postgres"
+           pg_dump --host=127.0.0.1  --no-password  --format custom --blobs --verbose --file "tmp/postgres.backup" "postgres"
         env:
-          # The hostname used to communicate with the PostgreSQL service container
-          POSTGRES_HOST: postgres
           PGPASSWORD: postgres
           # The default PostgreSQL port
           POSTGRES_PORT: 5432
