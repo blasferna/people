@@ -1,6 +1,8 @@
 name: Download and Build
 
 on:
+  schedule:
+    - cron:  '0 0 12 * *'
   workflow_dispatch:
 jobs:
   build:
