@@ -12,7 +12,7 @@ jobs:
       # Label used to access the service container
       postgres:
         # Docker Hub image
-        image: postgres
+        image: fgrehm/postgresql-9.1:latest
         # Provide the password for postgres
         env:
           POSTGRES_PASSWORD: postgres
@@ -32,6 +32,8 @@ jobs:
 
       - name: Install dependencies
         run: |
+          apt-get update
+          apt-get install --yes postgresql-client
           python -m pip install -U pip
           python -m pip install -U requests beautifulsoup4
           
@@ -50,19 +52,21 @@ jobs:
 
       - name: Import data
         run: |
-           psql ruc < ruc.sql
+           psql postgres < ruc.sql
         env:
           # The hostname used to communicate with the PostgreSQL service container
           POSTGRES_HOST: postgres
+          PGPASSWORD: postgres
           # The default PostgreSQL port
           POSTGRES_PORT: 5432
 
       - name: Export data
         run: |
-           pg_dump --host=postgres  --no-password  --format custom --blobs --verbose --file "tmp/postgres.backup" "ruc"
+           pg_dump --host=postgres  --no-password  --format custom --blobs --verbose --file "tmp/postgres.backup" "postgres"
         env:
           # The hostname used to communicate with the PostgreSQL service container
           POSTGRES_HOST: postgres
+          PGPASSWORD: postgres
           # The default PostgreSQL port
           POSTGRES_PORT: 5432
   
