@@ -29,8 +29,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          apt-get update
-          apt-get install --yes postgresql-client
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client
           python -m pip install -U pip
           python -m pip install -U requests beautifulsoup4
           
