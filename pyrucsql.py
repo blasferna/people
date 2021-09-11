@@ -73,7 +73,7 @@ def extract(filename):
 
 
 def create_inserts(filename):
-    with open(filename, 'r') as f:
+    with open(filename, 'r', encoding='utf8') as f:
         for line in f.readlines():
             try:
                 ruc, rz, dv, str, d = line.split('|')
@@ -82,7 +82,7 @@ def create_inserts(filename):
             inserts.append(insert_postgresql(ruc, rz, dv, str))
 
 def build_database():
-    with open('ruc.sql', 'w') as f:
+    with open('ruc.sql', 'w', encoding='utf8') as f:
         f.write(create_table_postgresql())
         f.write(create_view_postgresql())
         for insert in inserts:

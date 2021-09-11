@@ -19,6 +19,8 @@ USING btree
 
 
 def insert_postgresql(ruc, razon_social, dv, ruc_str):
+    razon_social = razon_social.replace("'", "''")
+    ruc_str = ruc_str.replace("'", "''")
     return f"""INSERT INTO contribuyentes(ruc, razon_social, dv, ruc_str) VALUES ('{ruc}', '{razon_social}', '{dv}', '{ruc_str}');"""
 
 def create_view_postgresql():
