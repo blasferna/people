@@ -21,3 +21,11 @@ jobs:
       - name: Download files
         run: |
           python pyrucsql.py
+          
+      - name: Commit changes
+        uses: EndBug/add-and-commit@v7
+        with:
+          author_name: Blas Fernández
+          author_email: blasferna@gmail.com
+          message: 'update ruc.zip'
+          add: 'tmp/*.zip'
