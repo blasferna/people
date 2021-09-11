@@ -41,7 +41,7 @@ jobs:
           
       - name: Create database
         run: |
-           psql "create database ruc;"
+           psql --host=postgres "create database ruc;"
         env:
           # The hostname used to communicate with the PostgreSQL service container
           POSTGRES_HOST: postgres
@@ -59,7 +59,7 @@ jobs:
 
       - name: Export data
         run: |
-           pg_dump  --no-password  --format custom --blobs --verbose --file "tmp/postgres.backup" "ruc"
+           pg_dump --host=postgres  --no-password  --format custom --blobs --verbose --file "tmp/postgres.backup" "ruc"
         env:
           # The hostname used to communicate with the PostgreSQL service container
           POSTGRES_HOST: postgres
