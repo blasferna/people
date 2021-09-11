@@ -7,18 +7,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # Service containers to run with `container-job`
-    services:
-      # Label used to access the service container
-      postgres:
-        # Docker Hub image
-        image: swcc/docker-postgresql:9.1
-        # Provide the password for postgres
-        ports: ['5432:5432']
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
     steps:
       - uses: actions/checkout@v2
 
@@ -29,38 +17,13 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install --yes postgresql-client
           python -m pip install -U pip
           python -m pip install -U requests beautifulsoup4
           
       - name: Download files
         run: |
           python pyrucsql.py
-          
-      - name: Create database
-        run: |
-           psql --host=127.0.0.1 "create database ruc;"
-        env:
-          # The default PostgreSQL port
-          POSTGRES_PORT: 5432
 
-      - name: Import data
-        run: |
-           psql postgres < ruc.sql
-        env:
-          PGPASSWORD: postgres
-          # The default PostgreSQL port
-          POSTGRES_PORT: 5432
-
-      - name: Export data
-        run: |
-           pg_dump --host=127.0.0.1  --no-password  --format custom --blobs --verbose --file "tmp/postgres.backup" "postgres"
-        env:
-          PGPASSWORD: postgres
-          # The default PostgreSQL port
-          POSTGRES_PORT: 5432
-  
       - name: Commit changes
         uses: EndBug/add-and-commit@v7
         with:
