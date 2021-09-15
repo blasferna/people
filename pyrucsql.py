@@ -3,13 +3,13 @@ from zipfile import ZipFile
 
 import requests
 from bs4 import BeautifulSoup
-from utils import insert_postgresql, create_table_postgresql, create_view_postgresql, file_compress
+from utils import insert_postgresql, insert_values, create_table_postgresql, create_view_postgresql, file_compress
 
 requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS = 'ALL:@SECLEVEL=1'
 BASE_URL = 'https://www.set.gov.py'
 URL = f'{BASE_URL}/portal/PARAGUAY-SET/InformesPeriodicos?folder-id=repository:collaboration:/sites/PARAGUAY-SET/categories/SET/Informes%20Periodicos/listado-de-ruc-con-sus-equivalencias'
 
-inserts = []
+values = []
 
 def get_download_preview_links():
     links = []
@@ -71,22 +71,23 @@ def extract(filename):
     with ZipFile(filename, 'r') as zipObj:
         zipObj.extractall('tmp')
 
-
-def create_inserts(filename):
+def create_values(filename):
     with open(filename, 'r', encoding='utf8') as f:
         for line in f.readlines():
             try:
                 ruc, rz, dv, str, d = line.split('|')
             except ValueError:
                 ruc, rz, dv, str, d, d1 = line.split('|')
-            inserts.append(insert_postgresql(ruc, rz, dv, str))
+            values.append(insert_values(ruc, rz, dv, str))
 
 def build_database():
     with open('ruc.sql', 'w', encoding='utf8') as f:
         f.write(create_table_postgresql())
         f.write(create_view_postgresql())
-        for insert in inserts:
-            f.write(insert+"\n")
+
+        chunks = [values[x:x+1000] for x in range(0, len(values), 1000)]
+        for v in chunks:
+            f.write('\n'+insert_postgresql(',\n'.join(v)))
 
 def zip_database():
     file_compress(['ruc.sql'], 'dist/ruc.zip')
@@ -103,8 +104,8 @@ if __name__ == '__main__':
             extract(filename)
         finally:
             print(f"{filename} extracted")
-        print("Creatings inserts")
-        create_inserts(f"tmp/{name.split('.')[0]}.txt")
+        print("building values")
+        create_values(f"tmp/{name.split('.')[0]}.txt")
     print("building database")
     build_database()
     zip_database()

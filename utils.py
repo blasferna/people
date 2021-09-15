@@ -1,5 +1,6 @@
 import zipfile
 
+
 def create_table_postgresql():
     return """
 CREATE TABLE contribuyentes
@@ -15,13 +16,19 @@ CREATE INDEX ruc_index
 ON contribuyentes
 USING btree
 (ruc COLLATE pg_catalog."default" );
-    """
+
+"""
 
 
-def insert_postgresql(ruc, razon_social, dv, ruc_str):
+def insert_postgresql(values):
+    return f"""INSERT INTO contribuyentes(ruc, razon_social, dv, ruc_str) 
+    VALUES  
+{values};"""
+    
+def insert_values(ruc, razon_social, dv, ruc_str):
     razon_social = razon_social.replace("'", "''")
-    ruc_str = ruc_str.replace("'", "''")
-    return f"""INSERT INTO contribuyentes(ruc, razon_social, dv, ruc_str) VALUES ('{ruc}', '{razon_social}', '{dv}', '{ruc_str}');"""
+    ruc_str = ruc_str.replace("'", "''").replace(chr(92), '')
+    return f"""('{ruc}', '{razon_social}', '{dv}', '{ruc_str}')"""
 
 def create_view_postgresql():
     return """
@@ -32,9 +39,8 @@ SELECT pg_catalog.concat(contribuyentes.ruc, '-', contribuyentes.dv) AS ruc,
             ELSE contribuyentes.razon_social
         END AS razon_social
 FROM contribuyentes;
-    """
 
-
+"""
 
 def file_compress(inp_file_names, out_zip_file):
     """
