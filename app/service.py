@@ -1,3 +1,10 @@
-from fastapi_csv import FastAPI_CSV
+from fastapi import FastAPI
 
-app = FastAPI_CSV("data/data.csv", ";")
+from .db import db
+from . import models
+
+app = FastAPI()
+
+@app.get("/")
+async def get(ruc):
+    return await models.Ruc.retreive(db, ruc)
