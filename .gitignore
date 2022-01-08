@@ -129,5 +129,5 @@ dmypy.json
 
 ruc.sql
 
-tmp/*.txt
-tmp/*.zip
+data/tmp/*.txt
+data/tmp/*.zip

@@ -22,7 +22,7 @@ jobs:
           
       - name: Download files
         run: |
-          python pyrucsql.py
+          cd data && python download.py
 
       - name: Commit changes
         uses: EndBug/add-and-commit@v7
