@@ -8,9 +8,12 @@ from .utils import PrettyJSONResponse
 app = FastAPI()
 
 
-@app.get("/")
+@app.get("/", response_class=PrettyJSONResponse)
 async def get_ruc(ruc):
-    return await models.Ruc.retreive(db, ruc)
+    result = await models.Ruc.retreive(db, ruc)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Ruc no encontrado")
+    return result
 
 
 @app.get("/ips", response_class=PrettyJSONResponse)
