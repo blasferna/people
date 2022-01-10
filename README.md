@@ -8,13 +8,13 @@ Api de datos de personas del Paraguay.
 `Curl`
 ```bash
 curl -X 'GET' \
-  'https://ruc-py.herokuapp.com/?ruc=5049813-4' \
+  'https://peoplepy.herokuapp.com/?ruc=5049813-4' \
   -H 'accept: application/json'
 ```
 
 `Url de la petición`
-```http
-https://ruc-py.herokuapp.com/?ruc=5049813-4
+```
+https://peoplepy.herokuapp.com/?ruc=5049813-4
 ```
 
 `Respuesta`
@@ -33,13 +33,13 @@ https://ruc-py.herokuapp.com/?ruc=5049813-4
 `Curl`
 ```bash
 curl -X 'GET' \
-  'https://ruc-py.herokuapp.com/ips?documento=5049813' \
+  'https://peoplepy.herokuapp.com/ips?documento=5049813' \
   -H 'accept: application/json'
 ```
 
 `Url de la petición`
-```http
-https://ruc-py.herokuapp.com/ips?documento=5049813
+```
+https://peoplepy.herokuapp.com/ips?documento=5049813
 ```
 
 `Respuesta`
