@@ -1,6 +1,9 @@
+import glob
+import os
 import sqlite3
 from zipfile import ZipFile
 
+import pandas as pd
 import requests
 import urllib3
 from bs4 import BeautifulSoup
@@ -11,9 +14,11 @@ from utils import (create_table_postgresql, create_view_postgresql,
 requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS = 'ALL:@SECLEVEL=1'
 BASE_URL = 'https://www.set.gov.py'
 URL = f'{BASE_URL}/portal/PARAGUAY-SET/InformesPeriodicos?folder-id=repository:collaboration:/sites/PARAGUAY-SET/categories/SET/Informes%20Periodicos/listado-de-ruc-con-sus-equivalencias'
+URL_PERSONAS_JURIDICAS = f'{BASE_URL}/portal/PARAGUAY-SET/InformesPeriodicos?folder-id=repository:collaboration:/sites/PARAGUAY-SET/categories/SET/Informes%20Periodicos/lista-de-contribuyentes-que-son-personas-juridicas'
 
 values = []
 values_list = []
+pj = {}
 
 def get_download_preview_links():
     links = []
@@ -65,6 +70,50 @@ def get_download_link(url):
 
     return None
 
+def get_personas_juridicas_link():
+    try:
+        soup = BeautifulSoup(
+            requests.get( 
+                URL_PERSONAS_JURIDICAS,
+                timeout=10,
+                headers={"user-agent": "Mozilla/5.0"},
+                verify=True,                
+            ).text,
+            "html.parser"
+        )
+        list_div = soup.select(".media-body")[0]
+        download_page_url = list_div.select("a")[0]['href']
+
+        soup = BeautifulSoup(
+            requests.get( 
+                f"{BASE_URL}{download_page_url}",
+                timeout=10,
+                headers={"user-agent": "Mozilla/5.0"},
+                verify=True,                
+            ).text,
+            "html.parser"
+        )
+        return soup.select(".btn-primary")[0]['href']
+    except requests.ConnectionError as e:
+        print(f'Connection Error {e}')
+    except Exception as e:
+        print(e)
+
+    return None
+
+def extract_pj():
+    def _categoria(value):
+        return "P" if value=="PEQUENO" else "M" if value=="MEDIANO" else "G"
+
+    os.system("cd tmp && unrar e juridicas.rar -y")
+    path = os.getcwd()
+    path = os.path.join(path, 'tmp')
+    csv_files = glob.glob(os.path.join(path, "*.xlsx"))
+    for f in csv_files:
+        df = pd.read_excel(f)
+        for index, row in df.iterrows():
+            pj[f"{row['RUC']}-{row['DV']}"] = _categoria(row["CATEGORIA"])
+
 def download(url, filename):
     r = requests.get(f"{BASE_URL}{url}", allow_redirects=True)
     location = f"tmp/{filename}"
@@ -83,7 +132,9 @@ def create_values(filename):
             except ValueError:
                 ruc, rz, dv, str, d, d1 = line.split('|')
             values.append(insert_values(ruc, rz, dv, str))
-            values_list.append((f"{ruc}-{dv}", rz))
+            cat = pj.get(f"{ruc}-{dv}", False)
+            tipo = 'F' if not cat else 'J'
+            values_list.append((f"{ruc}-{dv}", rz, tipo, cat))
 
 def build_database():
     with open('ruc.sql', 'w', encoding='utf8') as f:
@@ -99,10 +150,10 @@ def build_sqlite3():
     cur = con.cursor()
     cur.execute('DROP TABLE ruc')
     cur.execute('''CREATE TABLE ruc
-                (ruc text, razonsocial text)''')
+                (ruc text, razonsocial text, tipo text, categoria text)''')
     
 
-    cur.executemany(f"INSERT INTO ruc VALUES (?, ?)", values_list)
+    cur.executemany(f"INSERT INTO ruc VALUES (?, ?, ?, ?)", values_list)
     con.commit()
     con.close()
 
@@ -111,6 +162,10 @@ def zip_database():
 
 if __name__ == '__main__':
     links = get_download_preview_links()
+    # pj
+    download(get_personas_juridicas_link(), 'juridicas.rar')
+    extract_pj()
+    
     for d in links:
         name = list(d.keys())[0]
         url = d[name]
