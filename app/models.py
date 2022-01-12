@@ -36,12 +36,13 @@ class Persona:
     @staticmethod
     async def get_ruc(db, cedula):
         data = await Persona.retreive(db, cedula)
-        return {
-            "ruc": data.id,
-            "razonsocial": f"{data.apellidos} {data.nombres}",
-            "tipo": "F",
-            "categoria": 0,
-            "dv": None,
-            "fecNac": int_to_datestr(data.fecnac)
-        }
-
+        if data is not None:
+            return {
+                "ruc": data.id,
+                "razonsocial": f"{data.apellidos} {data.nombres}",
+                "tipo": "F",
+                "categoria": 0,
+                "dv": None,
+                "fecNac": int_to_datestr(data.fecnac)
+            }
+        return None
