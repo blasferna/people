@@ -5,7 +5,6 @@ from zipfile import ZipFile
 
 import pandas as pd
 import requests
-import urllib3
 from bs4 import BeautifulSoup
 
 from utils import (create_table_postgresql, create_view_postgresql,
@@ -134,7 +133,7 @@ def create_values(filename):
             values.append(insert_values(ruc, rz, dv, str))
             cat = pj.get(f"{ruc}-{dv}", False)
             tipo = 'F' if not cat else 'J'
-            values_list.append((f"{ruc}-{dv}", rz, tipo, cat))
+            values_list.append((ruc, rz, tipo, cat, dv))
 
 def build_database():
     with open('ruc.sql', 'w', encoding='utf8') as f:
@@ -150,10 +149,10 @@ def build_sqlite3():
     cur = con.cursor()
     cur.execute('DROP TABLE ruc')
     cur.execute('''CREATE TABLE ruc
-                (ruc text, razonsocial text, tipo text, categoria text)''')
+                (ruc text, razonsocial text, tipo text, categoria text, dv text)''')
     
 
-    cur.executemany(f"INSERT INTO ruc VALUES (?, ?, ?, ?)", values_list)
+    cur.executemany("INSERT INTO ruc VALUES (?, ?, ?, ?, ?)", values_list)
     con.commit()
     con.close()
 

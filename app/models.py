@@ -1,5 +1,7 @@
 import sqlalchemy
+
 from .db import metadata, metadata_1
+from .utils import int_to_datestr
 
 
 rucs = sqlalchemy.Table(
@@ -8,7 +10,8 @@ rucs = sqlalchemy.Table(
     sqlalchemy.Column("ruc", sqlalchemy.String, primary_key=True),
     sqlalchemy.Column("razonsocial", sqlalchemy.String),
     sqlalchemy.Column("tipo", sqlalchemy.String),
-    sqlalchemy.Column("categoria", sqlalchemy.String)
+    sqlalchemy.Column("categoria", sqlalchemy.String),
+    sqlalchemy.Column("dv", sqlalchemy.String)
 )
 
 personas = sqlalchemy.Table(
@@ -29,3 +32,16 @@ class Persona:
     @staticmethod
     async def retreive(db, cedula):
         return await db.fetch_one(personas.select().where(personas.c.id==cedula))
+    
+    @staticmethod
+    async def get_ruc(db, cedula):
+        data = await Persona.retreive(db, cedula)
+        return {
+            "ruc": data.id,
+            "razonsocial": f"{data.apellidos} {data.nombres}",
+            "tipo": "F",
+            "categoria": 0,
+            "dv": None,
+            "fecNac": int_to_datestr(data.fecnac)
+        }
+
