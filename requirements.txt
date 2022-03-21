@@ -28,7 +28,7 @@ h11==0.13.0
     # via uvicorn
 idna==2.10
     # via requests
-numpy==1.22.3
+numpy==1.22.0
     # via pandas
 openpyxl==3.0.9
     # via -r requirements.in
