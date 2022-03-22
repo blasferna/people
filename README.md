@@ -70,7 +70,20 @@ https://peoplepy.herokuapp.com/ips?documento=5049813
   ]
 }
 ```
+## Docker
 
+Construir localmente
+
+```bash
+docker build -t api .
+```
+
+
+Ejecutar localmente
+
+```bash
+docker run --name api -p 80:80 api
+```
 
 ## Roadmap
 * <s>Base de datos de RUC auto actualizado.</s>
