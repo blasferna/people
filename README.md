@@ -72,7 +72,7 @@ https://peoplepy.herokuapp.com/ips?documento=5049813
 ```
 ## Docker
 
-Contruir localmente
+Construir localmente
 
 ```bash
 docker build -t api .
