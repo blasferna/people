@@ -88,7 +88,7 @@ Ejecutar localmente
 docker run --name people -p 80:80 people
 ```
 
-### Utilizar la version de `ghdr.io`
+### Utilizar la version de `ghcr.io`
 
 Descargar
 
