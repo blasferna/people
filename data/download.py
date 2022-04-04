@@ -130,6 +130,7 @@ def create_values(filename):
                 ruc, rz, dv, str, d = line.split('|')
             except ValueError:
                 ruc, rz, dv, str, d, d1 = line.split('|')
+            rz = rz.replace(',', '')
             values.append(insert_values(ruc, rz, dv, str))
             cat = pj.get(f"{ruc}-{dv}", False)
             tipo = 'F' if not cat else 'J'
