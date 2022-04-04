@@ -2,7 +2,9 @@ name: Download and Build
 
 on:
   schedule:
-    - cron:  '0 0 12 * *'
+    - cron:  '0 0 1 * *'
+    - cron:  '0 0 10 * *'
+    - cron:  '0 0 25 * *'
   workflow_dispatch:
 jobs:
   build:
