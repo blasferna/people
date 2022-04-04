@@ -49,7 +49,7 @@ def get_taxpayer(document):
         citizen = get_citizen(document)
         if citizen:
             data["ruc"] = citizen["cedula"]
-            data["razonsocial"] = f"{citizen['nombres']} {citizen['apellidos']}"
+            data["razonsocial"] = f"{citizen['apellidos']} {citizen['nombres']}"
         else:
             raise DoesNotExist("Not found")
     else:
