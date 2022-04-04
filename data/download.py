@@ -101,6 +101,19 @@ def get_personas_juridicas_link():
     return None
 
 def extract_pj():
+    """
+    +------------+----------------------------+
+    | Col-Index  | Data                       |
+    +------------+----------------------------+
+    |     0      | RUC                        |
+    +------------+----------------------------+
+    |     1      | DV                         |
+    +------------+----------------------------+
+    |     2      | NOMBRE_RAZON_SOCIAL        |
+    +------------+----------------------------+
+    |     3      | CATEGORIA                  |
+    +------------+----------------------------+
+    """
     def _categoria(value):
         return "P" if value=="PEQUENO" else "M" if value=="MEDIANO" else "G"
 
@@ -109,9 +122,11 @@ def extract_pj():
     path = os.path.join(path, 'tmp')
     csv_files = glob.glob(os.path.join(path, "*.xlsx"))
     for f in csv_files:
-        df = pd.read_excel(f)
+        df = pd.read_excel(f, header=None)
         for index, row in df.iterrows():
-            pj[f"{row['RUC']}-{row['DV']}"] = _categoria(row["CATEGORIA"])
+            if row[0] != 'NaN':
+                pj[f"{row[0]}-{row[1]}"] = _categoria(row[3])
+                
 
 def download(url, filename):
     r = requests.get(f"{BASE_URL}{url}", allow_redirects=True)
