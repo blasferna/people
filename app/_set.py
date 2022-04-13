@@ -24,7 +24,9 @@ def get_citizen(document):
     rjson = response.json()
     full_name = rjson["resultado"]["nombres"].rstrip()
     last_name = rjson["resultado"]["apellidoPaterno"].rstrip()
-    mother_last_name = rjson["resultado"]["apellidoMaterno"].rstrip()
+    mother_last_name = ""
+    if rjson["resultado"]["apellidoMaterno"] is not None:
+        mother_last_name = rjson["resultado"]["apellidoMaterno"].rstrip()
 
     data["cedula"] = rjson["resultado"]["cedula"]
     data["apellidos"] = f"{last_name} {mother_last_name}"
