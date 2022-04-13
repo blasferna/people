@@ -129,6 +129,8 @@ dmypy.json
 
 ruc.sql
 
+personas.db
+
 data/tmp/*.txt
 data/tmp/*.zip
 data/tmp/*.rar
