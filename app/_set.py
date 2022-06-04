@@ -17,7 +17,7 @@ def get_citizen(document):
     data = {"cedula": None, "apellidos": None, "nombres": None, "fecNac": None}
     session = requests.Session()
     response = session.request(
-        "GET", CITIZEN_URL, params={"t3": encrypt_param(document, "cedula")}
+        "GET", CITIZEN_URL, params={"t3": encrypt_param(document, "cedula")}, timeout=(5, 5)
     )
     if len(response.text) == 0:
         raise DoesNotExist("Not found")
@@ -45,7 +45,7 @@ def get_taxpayer(document):
     }
     session = requests.Session()
     response = session.request(
-        "GET", TAXPAYER_URL, params={"t3": encrypt_param(document, "ruc")}
+        "GET", TAXPAYER_URL, params={"t3": encrypt_param(document, "ruc")}, timeout=(5, 5)
     )
     if len(response.text) == 0:
         citizen = get_citizen(document)
