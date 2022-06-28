@@ -32,7 +32,7 @@ jobs:
       - name: Commit changes
         uses: EndBug/add-and-commit@v7
         with:
-          author_name: Blas Fernández
-          author_email: blasferna@gmail.com
+          author_name: github-actions
+          author_email: github-actions@github.com
           message: 'update ruc.zip'
           add: '.'
