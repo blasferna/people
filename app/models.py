@@ -11,7 +11,8 @@ rucs = sqlalchemy.Table(
     sqlalchemy.Column("razonsocial", sqlalchemy.String),
     sqlalchemy.Column("tipo", sqlalchemy.String),
     sqlalchemy.Column("categoria", sqlalchemy.String),
-    sqlalchemy.Column("dv", sqlalchemy.String)
+    sqlalchemy.Column("dv", sqlalchemy.String),
+    sqlalchemy.Column("estado", sqlalchemy.String)
 )
 
 personas = sqlalchemy.Table(
@@ -43,6 +44,7 @@ class Persona:
                 "tipo": "F",
                 "categoria": 0,
                 "dv": None,
-                "fecNac": int_to_datestr(data.fecnac)
+                "fecNac": int_to_datestr(data.fecnac),
+                "estado": ""
             }
         return None

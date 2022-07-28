@@ -21,6 +21,7 @@ async def get_ruc(ruc):
         _data = await models.Persona.get_ruc(db_1, ruc)
         if _data is not None:
             _data["dv"] = data.dv
+            _data["estado"] = data.estado
             data = _data
     return data
 
