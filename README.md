@@ -25,7 +25,8 @@ https://peoplepy.herokuapp.com/?ruc=80009735
   "razonsocial": "ADMINISTRACION NACIONAL DE ELECTRICIDAD - ANDE",
   "tipo": "J",
   "categoria": "G",
-  "dv": "1"
+  "dv": "1",
+  "estado": "ACTIVO"
 }
 ```
 
