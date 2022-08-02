@@ -5,13 +5,16 @@ from typing import Optional
 import pandas as pd
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import HTMLResponse
+from starlette.middleware.cors import CORSMiddleware
 
 from . import _set, ips, mimetypes, models
 from .db import db, db_1
 from .utils import PrettyJSONResponse, get_delimitter, int_to_datestr
 
 app = FastAPI()
-
+app.add_middleware(
+    CORSMiddleware, allow_origins=["*"], allow_headers=["*"], allow_methods=["*"]
+)
 
 @app.get("/", response_class=PrettyJSONResponse)
 async def get_ruc(ruc):
