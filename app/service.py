@@ -16,6 +16,7 @@ app.add_middleware(
     CORSMiddleware, allow_origins=["*"], allow_headers=["*"], allow_methods=["*"]
 )
 
+
 @app.get("/", response_class=PrettyJSONResponse)
 async def get_ruc(ruc):
     data = await models.Ruc.retreive(db, ruc)
@@ -102,13 +103,13 @@ async def create_upload_file(
     if df is None:
         raise HTTPException(status_code=400, detail="Missing dataframe")
 
-    rucs = [str(row[int(index)]) for i, row in df.iterrows()]
+    rucs = [str(row[int(index) - 1]) for i, row in df.iterrows()]
     data = await models.Ruc.get_dict(db, rucs)
 
     invalid_list = []
     for i, row in df.iterrows():
         raw = " ".join([str(x) for x in row])
-        ruc = str(row[int(index)])
+        ruc = str(row[int(index) - 1])
         instance = data.get(ruc)
         if instance is None:
             invalid_list.append(
@@ -125,6 +126,7 @@ async def create_upload_file(
                     {
                         "row": i + offset,
                         "data": raw,
+                        "ruc": ruc,
                         "msg": instance.estado,
                     }
                 )
