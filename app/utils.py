@@ -1,7 +1,9 @@
 import base64
+import csv
 import json
 import typing
 from datetime import datetime, timedelta
+from io import StringIO
 
 from Crypto.Cipher import AES
 from Crypto.Util import Padding
@@ -35,3 +37,11 @@ def encrypt_param(param, variant="ruc"):
     cipher = AES.new(encryption_key, AES.MODE_CBC, iv)
     cipher_enc = cipher.encrypt(text_padded)
     return base64.b64encode(cipher_enc).decode()
+
+
+def get_delimitter(buffer):
+    try:
+        dialect = csv.Sniffer().sniff(buffer.readline(), delimiters=";,")
+        return dialect.delimiter
+    except csv.Error:
+        return "\t"
