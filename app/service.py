@@ -107,10 +107,16 @@ async def create_upload_file(
     data = await models.Ruc.get_dict(db, rucs)
 
     invalid_list = []
+    counter = {
+        "RUC INEXISTENTE": 0,
+        "CANCELADO": 0,
+        "SUSPENSION TEMPORAL": 0,
+        "BLOQUEADO": 0,
+    }
     for i, row in df.iterrows():
         raw = " ".join([str(x) for x in row])
         ruc = str(row[int(index) - 1])
-        if ruc != 'X':
+        if ruc != "X":
             instance = data.get(ruc)
             if instance is None:
                 invalid_list.append(
@@ -121,6 +127,7 @@ async def create_upload_file(
                         "msg": "RUC INEXISTENTE",
                     }
                 )
+                counter["RUC INEXISTENTE"] += 1
             else:
                 if instance.estado != "ACTIVO":
                     invalid_list.append(
@@ -131,4 +138,5 @@ async def create_upload_file(
                             "msg": instance.estado,
                         }
                     )
-    return {"invalid_list": invalid_list}
+                    counter[instance.estado] += 1
+    return {"invalid_list": invalid_list, "counter": counter}
