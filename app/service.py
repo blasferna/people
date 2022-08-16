@@ -110,24 +110,25 @@ async def create_upload_file(
     for i, row in df.iterrows():
         raw = " ".join([str(x) for x in row])
         ruc = str(row[int(index) - 1])
-        instance = data.get(ruc)
-        if instance is None:
-            invalid_list.append(
-                {
-                    "row": i + offset,
-                    "data": raw,
-                    "ruc": ruc,
-                    "msg": "RUC INEXISTENTE",
-                }
-            )
-        else:
-            if instance.estado != "ACTIVO":
+        if ruc != 'X':
+            instance = data.get(ruc)
+            if instance is None:
                 invalid_list.append(
                     {
                         "row": i + offset,
                         "data": raw,
                         "ruc": ruc,
-                        "msg": instance.estado,
+                        "msg": "RUC INEXISTENTE",
                     }
                 )
+            else:
+                if instance.estado != "ACTIVO":
+                    invalid_list.append(
+                        {
+                            "row": i + offset,
+                            "data": raw,
+                            "ruc": ruc,
+                            "msg": instance.estado,
+                        }
+                    )
     return {"invalid_list": invalid_list}
