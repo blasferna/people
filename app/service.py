@@ -72,7 +72,9 @@ async def get_persona(cedula):
 
 @app.post("/validate-ruc", response_class=PrettyJSONResponse)
 async def create_upload_file(
-    file: Optional[UploadFile] = File(None), index: str = Form("0")
+    file: Optional[UploadFile] = File(None),
+    index: str = Form("0"),
+    rg90: bool = Form(False),
 ):
     if file.content_type not in [
         mimetypes.TEXT_PLAIN,
@@ -114,9 +116,12 @@ async def create_upload_file(
         "BLOQUEADO": 0,
     }
     for i, row in df.iterrows():
+        document_type = None
+        if rg90:
+            document_type = str(row[1])
         raw = " ".join([str(x) for x in row])
         ruc = str(row[int(index) - 1])
-        if ruc != "X":
+        if ruc != "X" and (document_type == "11" or document_type is None):
             instance = data.get(ruc)
             if instance is None:
                 invalid_list.append(
