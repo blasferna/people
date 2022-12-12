@@ -130,6 +130,7 @@ dmypy.json
 ruc.sql
 
 personas.db
+ruc.db
 
 data/tmp/*.txt
 data/tmp/*.zip
