@@ -29,6 +29,11 @@ jobs:
         run: |
           cd data && python download.py
 
+      - name: Upload ruc
+        run: |
+          cd data && curl -T ruc.db ${{ secrets.RUC_DB_URL }} -u "${{secrets.RUC_USER}}:${{secrets.RUC_PASSWORD}}"
+
+
       - name: Commit changes
         uses: EndBug/add-and-commit@v7
         with:
