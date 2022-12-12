@@ -29,6 +29,9 @@ jobs:
       - name: Download people database
         run: wget ${{ secrets.PEOPLE_DB_URL }} -P data/
 
+      - name: Download ruc database
+        run: wget --user ${{ secrets.RUC_USER }} --password ${{ secrets.RUC_PASSWORD }} ${{ secrets.RUC_DB_URL }} -P data/
+
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v3

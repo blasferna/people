@@ -172,7 +172,7 @@ def build_database():
 def build_sqlite3():
     con = sqlite3.connect("ruc.db")
     cur = con.cursor()
-    cur.execute("DROP TABLE ruc")
+    cur.execute("DROP TABLE IF EXISTS ruc")
     cur.execute(
         """CREATE TABLE ruc
                 (ruc text, razonsocial text, tipo text, categoria text, dv text, estado text)"""
