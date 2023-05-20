@@ -29,6 +29,10 @@ def int_to_datestr(value):
     return fecnac.strftime("%d/%m/%Y")
 
 
+def str_to_datestr(value):
+    return datetime.strptime(value, "%Y-%m-%d").strftime("%d/%m/%Y")
+
+
 def encrypt_param(param, variant="ruc"):
     encryption_key = base64.b64decode("aCIbjMuVGtwF8nlSKoPydE==")
     text = json.dumps({variant: param}).encode()

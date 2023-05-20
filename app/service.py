@@ -9,7 +9,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from . import _set, ips, mimetypes, models
 from .db import db, db_1
-from .utils import PrettyJSONResponse, get_delimitter, int_to_datestr
+from .utils import PrettyJSONResponse, get_delimitter, str_to_datestr
 
 app = FastAPI()
 app.add_middleware(
@@ -63,10 +63,10 @@ async def get_persona(cedula):
             "fecNac": None,
         }
     return {
-        "cedula": result.id,
+        "cedula": result.cedula,
         "apellidos": result.apellidos,
         "nombres": result.nombres,
-        "fecNac": int_to_datestr(result.fecnac),
+        "fecNac": str_to_datestr(result.nacimiento),
     }
 
 
