@@ -61,3 +61,14 @@ class Persona:
                 "estado": "",
             }
         return None
+
+    @staticmethod
+    async def filter_by_ids(db, _ids):
+        _in = ",".join(map(lambda x: f"'{x}'", _ids))
+        sql = f"SELECT c.cedula, c.apellidos ||' '|| c.nombres as razonsocial FROM persona c WHERE c.cedula IN ({_in})"
+        return await db.fetch_all(sql)
+
+    @staticmethod
+    async def get_dict(db, _ids):
+        data = await Persona.filter_by_ids(db, _ids)
+        return {x.cedula: x for x in data}

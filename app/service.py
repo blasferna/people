@@ -1,10 +1,11 @@
 import csv
 from io import BytesIO, StringIO
-from typing import Optional
+from typing import List, Optional
 
 import pandas as pd
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import HTMLResponse
+from pydantic import BaseModel
 from starlette.middleware.cors import CORSMiddleware
 
 from . import _set, ips, mimetypes, models
@@ -68,6 +69,21 @@ async def get_persona(cedula):
         "nombres": result.nombres,
         "fecNac": str_to_datestr(result.nacimiento),
     }
+
+
+class Document(BaseModel):
+    id: str
+
+
+@app.post("/names", response_class=PrettyJSONResponse)
+async def set_names(documents: List[Document]):
+    ids = [d.id for d in documents]
+    people = await models.Persona.get_dict(db_1, ids)
+    data = {str(k): v.razonsocial for k, v in people.items()}
+    ids = list(set(ids) - set(data.keys()))
+    tax_payers = await models.Ruc.get_dict(db, ids)
+    data.update({str(k): v.razonsocial for k, v in tax_payers.items()})
+    return data
 
 
 @app.post("/validate-ruc", response_class=PrettyJSONResponse)
