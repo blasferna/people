@@ -104,4 +104,4 @@ docker run --name people -p 80:80 ghcr.io/blasferna/people
 
 ## Roadmap
 * <s>Base de datos de RUC auto actualizado.</s>
-* Base de datos de personas basado en el padrón nacional.
+* <s>Base de datos de personas basado en el padrón nacional.</s>

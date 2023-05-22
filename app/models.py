@@ -1,7 +1,7 @@
 import sqlalchemy
 
 from .db import metadata, metadata_1
-from .utils import int_to_datestr
+from .utils import str_to_datestr
 
 
 rucs = sqlalchemy.Table(
@@ -16,12 +16,12 @@ rucs = sqlalchemy.Table(
 )
 
 personas = sqlalchemy.Table(
-    "cedulas",
+    "persona",
     metadata_1,
-    sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
+    sqlalchemy.Column("cedula", sqlalchemy.Integer, primary_key=True),
     sqlalchemy.Column("apellidos", sqlalchemy.String),
     sqlalchemy.Column("nombres", sqlalchemy.String),
-    sqlalchemy.Column("fecnac", sqlalchemy.Integer),
+    sqlalchemy.Column("nacimiento", sqlalchemy.Integer),
 )
 
 
@@ -45,19 +45,30 @@ class Ruc:
 class Persona:
     @staticmethod
     async def retreive(db, cedula):
-        return await db.fetch_one(personas.select().where(personas.c.id == cedula))
+        return await db.fetch_one(personas.select().where(personas.c.cedula == cedula))
 
     @staticmethod
     async def get_ruc(db, cedula):
         data = await Persona.retreive(db, cedula)
         if data is not None:
             return {
-                "ruc": data.id,
+                "ruc": data.cedula,
                 "razonsocial": f"{data.apellidos} {data.nombres}",
                 "tipo": "F",
                 "categoria": 0,
                 "dv": None,
-                "fecNac": int_to_datestr(data.fecnac),
+                "fecNac": str_to_datestr(data.nacimiento),
                 "estado": "",
             }
         return None
+
+    @staticmethod
+    async def filter_by_ids(db, _ids):
+        _in = ",".join(map(lambda x: f"'{x}'", _ids))
+        sql = f"SELECT c.cedula, c.apellidos ||' '|| c.nombres as razonsocial FROM persona c WHERE c.cedula IN ({_in})"
+        return await db.fetch_all(sql)
+
+    @staticmethod
+    async def get_dict(db, _ids):
+        data = await Persona.filter_by_ids(db, _ids)
+        return {x.cedula: x for x in data}
