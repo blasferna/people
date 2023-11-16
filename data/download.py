@@ -3,18 +3,10 @@ import os
 import sqlite3
 from zipfile import ZipFile
 
-import pandas as pd
 import requests
-from bs4 import BeautifulSoup
 import tabula
-
-from utils import (
-    create_table_postgresql,
-    create_view_postgresql,
-    file_compress,
-    insert_postgresql,
-    insert_values,
-)
+from bs4 import BeautifulSoup
+from utils import insert_values
 
 requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS = "ALL:@SECLEVEL=1"
 BASE_URL = "https://www.set.gov.py"
@@ -143,16 +135,6 @@ def create_values(filename):
             values_list.append((ruc, rz, tipo, cat, dv, status))
 
 
-def build_database():
-    with open("ruc.sql", "w", encoding="utf8") as f:
-        f.write(create_table_postgresql())
-        f.write(create_view_postgresql())
-
-        chunks = [values[x : x + 1000] for x in range(0, len(values), 1000)]
-        for v in chunks:
-            f.write("\n" + insert_postgresql(",\n".join(v)))
-
-
 def build_sqlite3():
     con = sqlite3.connect("ruc.db")
     cur = con.cursor()
@@ -167,8 +149,14 @@ def build_sqlite3():
     con.close()
 
 
-def zip_database():
-    file_compress(["ruc.sql"], "../dist/ruc.zip")
+def update_counter():
+    con = sqlite3.connect("ruc.db")
+    cur = con.cursor()
+    cur.execute("SELECT count(*) as count FROM ruc")
+    data = cur.fetchone()
+    if data:
+        with open("../counter.txt", "w") as f:
+            f.write(str(data[0]))
 
 
 if __name__ == "__main__":
@@ -191,8 +179,7 @@ if __name__ == "__main__":
             print(f"{filename} extracted")
         print("building values")
         create_values(f"tmp/{name.split('.')[0]}.txt")
-    print("building database")
-    build_database()
     print("building sqlite database")
     build_sqlite3()
-    zip_database()
+    print("updating counter")
+    update_counter()
