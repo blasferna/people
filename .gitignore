@@ -136,3 +136,4 @@ data/tmp/*.txt
 data/tmp/*.zip
 data/tmp/*.rar
 data/tmp/*.xlsx
+data/tmp/*.pdf

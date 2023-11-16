@@ -6,6 +6,7 @@ from zipfile import ZipFile
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
+import tabula
 
 from utils import (
     create_table_postgresql,
@@ -17,66 +18,43 @@ from utils import (
 
 requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS = "ALL:@SECLEVEL=1"
 BASE_URL = "https://www.set.gov.py"
-URL = f"{BASE_URL}/portal/PARAGUAY-SET/InformesPeriodicos?folder-id=repository:collaboration:/sites/PARAGUAY-SET/categories/SET/Informes%20Periodicos/listado-de-ruc-con-sus-equivalencias"
-URL_PERSONAS_JURIDICAS = f"{BASE_URL}/portal/PARAGUAY-SET/InformesPeriodicos?folder-id=repository:collaboration:/sites/PARAGUAY-SET/categories/SET/Informes%20Periodicos/lista-de-contribuyentes-que-son-personas-juridicas"
+URL_RUCS = f"{BASE_URL}/web/portal-institucional/listado-de-ruc-con-sus-equivalencias"
+URL_PERSONAS_JURIDICAS = (
+    f"{BASE_URL}/web/portal-institucional/contribuyentes-que-son-personas-jurídicas"
+)
 
 values = []
 values_list = []
 pj = {}
 
 
-def get_download_preview_links():
+def get_ruc_download_links():
     links = []
     try:
         soup = BeautifulSoup(
             requests.get(
-                URL,
+                URL_RUCS,
                 timeout=10,
                 headers={"user-agent": "Mozilla/5.0"},
                 verify=True,
             ).text,
             "html.parser",
         )
-        list_div = soup.select(".uiContentBox")[0]
-        lits_rows = list_div.select(".media")
-        for row in lits_rows:
-            a = row.find("a")
-            d = {}
-            d[a["title"]] = a["href"]
-            links.append(d)
-
-        return links
+        items = soup.find_all("div", class_="list__item search-item")
+        for item in items:
+            title = item.find("h3", class_="item__title").text.strip()
+            download_link = item.find("a", class_="link")["href"]
+            links.append({title: download_link})
     except requests.ConnectionError as e:
         print(f"Connection Error {e}")
     except Exception as e:
         print(e)
 
-    return None
-
-
-def get_download_link(url):
-    link = None
-    try:
-        soup = BeautifulSoup(
-            requests.get(
-                f"{BASE_URL}{url}",
-                timeout=10,
-                headers={"user-agent": "Mozilla/5.0"},
-                verify=True,
-            ).text,
-            "html.parser",
-        )
-        div = soup.select(".detailContainer")[0]
-        return div.select("a")[0]["href"]
-    except requests.ConnectionError as e:
-        print(f"Connection Error {e}")
-    except Exception as e:
-        print(e)
-
-    return None
+    return links
 
 
 def get_personas_juridicas_link():
+    link = None
     try:
         soup = BeautifulSoup(
             requests.get(
@@ -87,48 +65,54 @@ def get_personas_juridicas_link():
             ).text,
             "html.parser",
         )
-        list_div = soup.select(".media-body")[0]
-        download_page_url = list_div.select("a")[0]["href"]
-
-        soup = BeautifulSoup(
-            requests.get(
-                f"{BASE_URL}{download_page_url}",
-                timeout=10,
-                headers={"user-agent": "Mozilla/5.0"},
-                verify=True,
-            ).text,
-            "html.parser",
-        )
-        return soup.select(".btn-primary")[0]["href"]
+        items = soup.find_all("div", class_="list__item search-item")
+        for item in items:
+            if item.attrs["data-value"] == "2022":
+                continue
+            link = item.find("a", class_="link", attrs={"download": ""})["href"]
     except requests.ConnectionError as e:
         print(f"Connection Error {e}")
     except Exception as e:
         print(e)
 
-    return None
+    return link
 
 
 def extract_pj():
-    """
-        Column Index:
-        0 = RUC                        
-        1 = DV                         
-        2 = NOMBRE_RAZON_SOCIAL        
-        3 = CATEGORIA                  
-    """
+    def _category(value):
+        if value == "PEQUENO":
+            return "P"
+        elif value == "MEDIANO":
+            return "M"
+        elif value == "GRANDE":
+            return "G"
+        else:
+            return "D"
 
-    def _categoria(value):
-        return "P" if value == "PEQUENO" else "M" if value == "MEDIANO" else "G"
-
-    os.system("cd tmp && unrar e juridicas.rar -y")
     path = os.getcwd()
     path = os.path.join(path, "tmp")
-    csv_files = glob.glob(os.path.join(path, "*.xlsx"))
+    csv_files = glob.glob(os.path.join(path, "*.pdf"))
+
     for f in csv_files:
-        df = pd.read_excel(f, header=None)
-        for index, row in df.iterrows():
-            if row[0] != "NaN":
-                pj[f"{row[0]}-{row[1]}"] = _categoria(row[3])
+        dfs = tabula.read_pdf(f, pages="all", multiple_tables=True)
+        for df in dfs:
+            for index, row in df.iterrows():
+                try:
+                    ruc = row[0]
+                    dv = row[1]
+                    category = row[3]
+                except IndexError:
+                    ruc = row[0]
+                    dv = row[1]
+                    if row[2].endswith("PEQUENO"):
+                        category = "PEQUENO"
+                    elif row[2].endswith("MEDIANO"):
+                        category = "MEDIANO"
+                    elif row[2].endswith("GRANDE"):
+                        category = "GRANDE"
+                    else:
+                        category = "DESCONOCIDO"
+                pj[f"{ruc}-{dv}"] = _category(category)
 
 
 def download(url, filename):
@@ -189,19 +173,18 @@ def zip_database():
 
 if __name__ == "__main__":
     print("getting links")
-    links = get_download_preview_links()
+    links = get_ruc_download_links()
     # pj
-    print("downloading juridicas.rar")
-    download(get_personas_juridicas_link(), "juridicas.rar")
-    print("extracting juridicas.rar")
+    print("downloading listado de personas juridicas")
+    download(get_personas_juridicas_link(), "personas-juridicas.pdf")
+    print("extracting listado de personas juridicas")
     extract_pj()
 
     for d in links:
         name = list(d.keys())[0]
         url = d[name]
         print(f"downloading {name}")
-        dl = get_download_link(url)
-        filename = download(dl, name)
+        filename = download(url, name)
         try:
             extract(filename)
         finally:
