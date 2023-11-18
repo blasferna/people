@@ -59,7 +59,7 @@ Este comando iniciará el servidor en `localhost` en el puerto `8000`. Puedes ac
 
 ## Uso del API
 
-El API de PeoplePy ofrece dos endpoints principales:
+El API ofrece dos endpoints principales:
 
 - **RUC**: Para obtener información sobre un RUC específico, realiza una solicitud GET a `https://127.0.0.1:8000/?ruc=<RUC>`.
 - **IPS**: Para obtener información sobre un asegurado, realiza una solicitud GET a `https://127.0.0.1:5000/ips?documento=<documento>`. Lo que hace la app es scrappear la página de consulta asegurado y convertir el resultado en `JSON`.
