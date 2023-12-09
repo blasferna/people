@@ -33,6 +33,15 @@ python -m venv env
 pip install -r requirements.txt
 ```
 
+## Descargar datos de contribuyentes
+
+> [!NOTE]
+> Lamentablemente, la SET cambió la forma de publicación del listado de personas jurídicas. Ahora los datos están en un PDF. Para poder extraer los datos del PDF tuve que recurrir a `tabula`, por eso es necesario tener Java instalado en el sistema.
+
+Para descargar los datos de contribuyentes ejecuta el siguiente comando (No es necesario si utilizas la imagen de docker publicado en el registry de Github):
+```bash
+python data/download.py
+```
 
 ## Ejecución local
 
