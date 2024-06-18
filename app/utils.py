@@ -2,11 +2,14 @@ import base64
 import csv
 import json
 import typing
+import zipfile
 from datetime import datetime
 
+import requests
 from Crypto.Cipher import AES
 from Crypto.Util import Padding
 from starlette.responses import Response
+from tqdm import tqdm
 
 
 class PrettyJSONResponse(Response):
@@ -48,3 +51,54 @@ def get_delimitter(buffer):
         return dialect.delimiter
     except csv.Error:
         return "\t"
+
+
+def insert_values(ruc, razon_social, dv, ruc_str):
+    razon_social = razon_social.replace("'", "''")
+    ruc_str = ruc_str.replace("'", "''").replace(chr(92), "")
+    return f"""('{ruc}', '{razon_social}', '{dv}', '{ruc_str}')"""
+
+
+def file_compress(inp_file_names, out_zip_file):
+    """
+    function : file_compress
+    args : inp_file_names : list of filenames to be zipped
+    out_zip_file : output zip file
+    return : none
+    assumption : Input file paths and this code is in same directory.
+    """
+    # Select the compression mode ZIP_DEFLATED for compression
+    # or zipfile.ZIP_STORED to just store the file
+    compression = zipfile.ZIP_DEFLATED
+    print(f" *** Input File name passed for zipping - {inp_file_names}")
+
+    # create the zip file first parameter path/name, second mode
+    print(f" *** out_zip_file is - {out_zip_file}")
+    zf = zipfile.ZipFile(out_zip_file, mode="w")
+
+    try:
+        for file_to_write in inp_file_names:
+            # Add file to the zip file
+            # first parameter file to zip, second filename in zip
+            print(f" *** Processing file {file_to_write}")
+            zf.write(file_to_write, file_to_write, compress_type=compression)
+    except FileNotFoundError as e:
+        print(f" *** Exception occurred during zip process - {e}")
+    finally:
+        # Don't forget to close the file!
+        zf.close()
+
+
+def download(url, dest_path):
+    response = requests.get(url, stream=True, allow_redirects=True)
+    total_size = int(response.headers.get('content-length', 0))
+    with open(dest_path, 'wb') as file, tqdm(
+        desc=dest_path,
+        total=total_size,
+        unit='B',
+        unit_scale=True,
+        unit_divisor=1024,
+    ) as bar:
+        for data in response.iter_content(chunk_size=1024):
+            size = file.write(data)
+            bar.update(size)
