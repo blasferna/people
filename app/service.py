@@ -79,6 +79,20 @@ async def get_ruc(ruc):
     return data
 
 
+@app.get("/search", response_class=PrettyJSONResponse)
+async def search(query):
+    query = query.strip()
+    results = await models.Ruc.search(db, query)
+    if len(results) == 0 and query.isdigit():
+        results = [await models.Persona.get_ruc(db_1, query)]
+        if results[0] is None:
+            try:
+                results = [_set.get_taxpayer(query)]
+            except (Exception, _set.DoesNotExist) as e:
+                results = []
+    return results
+
+
 @app.get("/ips", response_class=PrettyJSONResponse)
 async def get_ips(documento):
     try:
