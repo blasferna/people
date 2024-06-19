@@ -1,0 +1,9 @@
+{
+    "name": "Python 3.8 Environment",
+    "build": {
+      "dockerfile": "../Dockerfile"
+    },
+    "forwardPorts": [],
+    "postCreateCommand": "",
+    "remoteUser": "root"
+}
