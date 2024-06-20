@@ -118,7 +118,6 @@ class RucCrawler:
         for link in self.links:
             name = list(link.keys())[0]
             url = link[name]
-            print(f"Downloading {name}...")
             local_filename = f"data/tmp/{name}"
             download(f"{BASE_URL_SET}{url}", local_filename)
             try:
@@ -219,7 +218,6 @@ class PersonasJuridicasCrawler:
         return link
 
     def download(self):
-        print(f"Downloading {self.link}...")
         local_filename = f"data/tmp/{self.link.split('/')[-1]}"
         download(f"{BASE_URL_SET}{self.link}", local_filename)
         self.file = local_filename
