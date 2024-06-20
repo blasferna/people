@@ -1,7 +1,7 @@
 {
     "name": "Python 3.8 Environment",
     "build": {
-      "dockerfile": "../Dockerfile"
+      "dockerfile": "Dockerfile"
     },
     "forwardPorts": [],
     "postCreateCommand": "",
