@@ -1,3 +1,0 @@
-echo "-----> Downloading personas.db"
-
-wget $PEOPLE_DB_URL -P data/

@@ -1,19 +1,63 @@
+import os
 from io import BytesIO, StringIO
 from typing import List, Optional
 
 import pandas as pd
+import sqlalchemy
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
 from starlette.middleware.cors import CORSMiddleware
 
 from . import _set, ips, mimetypes, models
-from .db import db, db_1
-from .utils import PrettyJSONResponse, get_delimitter, str_to_datestr
+from .conf import settings
+from .db import db, db_1, metadata_1
+from .utils import PrettyJSONResponse, download, get_delimitter, str_to_datestr
 
+RUC_DB_PATH = str(db.url).replace("sqlite:///", "")
+PERSONA_DB_PATH = str(db_1.url).replace("sqlite:///", "")
+
+
+def ensure_db():
+    if not os.path.exists(RUC_DB_PATH):
+        print("Database does not exist")
+        print("Checking environment variables for database url")
+        if settings.RUC_DB_URL is not None:
+            print("RUC_DB_URL found, downloading database")
+            download(settings.RUC_DB_URL, RUC_DB_PATH)
+        else:
+            print("RUC_DB_URL not found, starting crawler")
+            crawler = _set.RucCrawler()
+            crawler.run()
+    else:
+        print("RUC database found")
+
+    if not os.path.exists(PERSONA_DB_PATH):
+        if settings.PEOPLE_DB_URL is not None:
+            print("PEOPLE_DB_URL found, downloading database")
+            download(settings.PEOPLE_DB_URL, PERSONA_DB_PATH)
+        else:
+            print("PEOPLE_DB_URL not found, awaiting for creation")
+
+    else:
+        print("People database found")
+
+
+ensure_db()
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware, allow_origins=["*"], allow_headers=["*"], allow_methods=["*"]
 )
+
+
+@app.on_event("startup")
+async def startup():
+    if not os.path.exists(PERSONA_DB_PATH) and settings.PEOPLE_DB_URL is None:
+        print("Creating people database")
+        await db_1.connect()
+        engine = sqlalchemy.create_engine(str(db_1.url))
+        print(f"engine: {engine}")
+        metadata_1.create_all(engine)
+        await db_1.disconnect()
 
 
 @app.get("/", response_class=PrettyJSONResponse)
@@ -33,6 +77,20 @@ async def get_ruc(ruc):
             _data["estado"] = data.estado
             data = _data
     return data
+
+
+@app.get("/search", response_class=PrettyJSONResponse)
+async def search(query):
+    query = query.strip()
+    results = await models.Ruc.search(db, query)
+    if len(results) == 0 and query.isdigit():
+        results = [await models.Persona.get_ruc(db_1, query)]
+        if results[0] is None:
+            try:
+                results = [_set.get_taxpayer(query)]
+            except (Exception, _set.DoesNotExist) as e:
+                results = []
+    return results
 
 
 @app.get("/ips", response_class=PrettyJSONResponse)

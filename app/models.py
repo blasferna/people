@@ -1,8 +1,8 @@
 import sqlalchemy
+from sqlalchemy import and_
 
 from .db import metadata, metadata_1
 from .utils import str_to_datestr
-
 
 rucs = sqlalchemy.Table(
     "ruc",
@@ -40,6 +40,17 @@ class Ruc:
     async def get_dict(db, _rucs):
         data = await Ruc.filter_by_rucs(db, _rucs)
         return {x.ruc: x for x in data}
+
+    @staticmethod
+    async def search(db, query):
+        keywords = query.split(" ")
+        conditions = []
+        for keyword in keywords:
+            keyword = f"%{keyword}%"
+            conditions.append(
+                (rucs.c.razonsocial.ilike(keyword)) | (rucs.c.ruc.ilike(keyword))
+            )
+        return await db.fetch_all(rucs.select().where(and_(*conditions)).limit(10))
 
 
 class Persona:

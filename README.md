@@ -1,88 +1,175 @@
 # People
 
-API que proporciona acceso a datos de contribuyentes del Paraguay. Este repositorio descarga de manera periódica la lista de contribuyentes proporcionada por la SET (Subsecretaría de Estado de Tributación) y construye una base de datos SQLite. Esta base de datos alimenta la API.
+En la primera ejecución, la aplicación descarga los archivos de RUCs y equivalencias de la DNIT y construye una base de datos SQLite. Luego, levanta un servidor con una API REST para consultar los datos.
 
-## Requisitos previos
+## Configuración del Entorno de Desarrollo
 
-Para ejecutar esta aplicación localmente, necesitarás tener instalado lo siguiente en tu sistema:
-
-- Python 3.8 o superior
-- Docker (Opcional)
-
-
-
-## Configuración del entorno de desarrollo
-
-1. Clona el repositorio en tu máquina local usando:
+1. Clona el repositorio del proyecto.
 
 ```bash
-https://github.com/blasferna/people.git
+git clone https://github.com/blasferna/people.git
 ```
 
-2. Navega hasta el directorio del proyecto.
-3. Crea un entorno virtual de Python (opcional, pero recomendado). Puedes hacerlo con el siguiente comando:
+2. Navega al directorio del proyecto:
+    
+```bash
+cd people
+```
+
+3. Crea y activa un entorno virtual de Python:
 
 ```bash
 python -m venv env
+source env/bin/activate  # En Windows: env\Scripts\activate
 ```
 
-3. Activa el entorno virtual. En Windows, usa `env\Scripts\activate`. En Unix o MacOS, usa `source env/bin/activate`.
+4. Instala las dependencias del proyecto:
 
-4. Instala las dependencias necesarias con el siguiente comando:
 ```bash
 pip install -r requirements.txt
 ```
 
-## Descargar datos de contribuyentes
+## Ejecución Local
+
+1. Asegúrate de tener el entorno virtual activado.
+2. Ejecuta el servidor web con el siguiente comando:
+
+```bash
+python manage.py runserver
+```
+
+El servidor estará disponible en `http://127.0.0.1:3000`.
 
 > [!NOTE]
-> Lamentablemente, la SET cambió la forma de publicación del listado de personas jurídicas. Ahora los datos están en un PDF. Para poder extraer los datos del PDF tuve que recurrir a `tabula`, por eso es necesario tener Java instalado en el sistema.
+> Si es la primera vez que ejecutas el servidor, la aplicación descargará los archivos de RUCs y equivalencias de la DNIT y construirá la base de datos SQLite. Este proceso puede tardar varios minutos.
 
-Para descargar los datos de contribuyentes ejecuta el siguiente comando (No es necesario si utilizas la imagen de docker publicado en el registry de Github):
-```bash
-python data/download.py
-```
+## Comandos CLI
 
-## Ejecución local
+El proyecto incluye varios comandos CLI para gestionar diferentes tareas:
 
-Para ejecutar la aplicación localmente tienes dos opciones:
-
-### Uvicorn
-
-Uvicorn es un servidor ASGI ligero y rápido, construido sobre uvloop y httptools. Para ejecutar la aplicación con Uvicorn, sigue estos pasos:
-
-1. Asegúrate de que estás en el directorio del proyecto.
-2. Ejecuta el siguiente comando para iniciar el servidor Uvicorn:
-
-```bash
-uvicorn wsgi-service:app --reload
-```
-
-Este comando iniciará el servidor en `localhost` en el puerto `8000`. Puedes acceder a la aplicación en tu navegador web en `http://localhost:8000`.
-
-### Docker
-
-1. Construye la imagen de Docker con `docker build -t people .`.
-2. Ejecuta la aplicación con `docker run --name people -p 80:80 people`.
-
-
-## Uso del API
-
-El API ofrece dos endpoints principales:
-
-- **RUC**: Para obtener información sobre un RUC específico, realiza una solicitud GET a `https://127.0.0.1:8000/?ruc=<RUC>`.
-- **IPS**: Para obtener información sobre un asegurado, realiza una solicitud GET a `https://127.0.0.1:5000/ips?documento=<documento>`. Lo que hace la app es scrappear la página de consulta asegurado y convertir el resultado en `JSON`.
+- `python manage.py runserver`: Ejecuta el servidor web.
+- `python manage.py build`: Vuelve a construir la base de datos. Descarga los archivos de RUCs y equivalencias y reconstruye la base de datos SQLite.
+- `python manage.py download`: Descarga bases de datos preconstruidas desde URLs especificadas en las variables de entorno (opcional).
+  - `RUC_DB_URL`: URL de la base de datos de RUCs preconstruida.
+  - `PEOPLE_DB_URL`: URL de la base de datos de personas preconstruida.
 
 ## Despliegue
 
-Para desplegar la aplicación en un entorno de producción, puedes utilizar la imagen de Docker disponible en `ghcr.io/blasferna/people:latest`.
+### Docker
 
-Descargar:
+El proyecto se puede desplegar utilizando Docker. La imagen está alojada en el registro de GitHub:
+
 ```bash
 docker pull ghcr.io/blasferna/people:latest
 ```
-Ejecutar:
+
+Es necesario crear un volumen para almacenar los datos:
+
 ```bash
-docker run --name people -p 80:80 ghcr.io/blasferna/people
+docker volume create people_data
 ```
 
+Ejecuta la imagen con el siguiente comando:
+
+```bash
+docker run --name people -p 80:80 -v people_data:/code ghcr.io/blasferna/people
+```
+
+Opcionalmente puedes ejecutar los comandos CLI de la aplicación utilizando Docker. Por ejemplo, para reconstruir la base de datos:
+
+```bash
+docker run -v people_data:/code ghcr.io/blasferna/people build
+```
+
+### Docker Compose
+
+También puedes utilizar Docker Compose para desplegar la aplicación. Asegúrate de crear un archivo `docker-compose.yml` con el siguiente contenido:
+
+```yaml
+version: '3'
+
+services:
+  app:
+    image: ghcr.io/blasferna/people:latest
+    ports:
+      - "80:80"
+    volumes:
+      - people_data:/code
+    restart: unless-stopped
+
+volumes:
+  people_data:
+```
+
+En este caso, no es necesario construir la imagen localmente, ya que se utilizará la imagen `ghcr.io/blasferna/people:latest` del registro de GitHub.
+
+Para desplegar la aplicación con Docker Compose, ejecuta el siguiente comando:
+
+```bash
+docker-compose up -d
+```
+
+Este comando descargará la imagen del registro de GitHub, creará un volumen llamado `people_data` para almacenar los datos persistentes, y ejecutará el contenedor en segundo plano.
+
+La opción `-d` indica que el contenedor se ejecutará en segundo plano y en combinación con la opción `restart: unless-stopped` del archivo `docker-compose.yml`, el contenedor se reiniciará automáticamente si se detiene o se reinicia el sistema.
+
+
+Para detener:
+
+```bash
+docker-compose stop
+```
+
+Para detener y eliminar los contenedores:
+
+```bash
+docker-compose down -v
+```
+
+La opción `-v` eliminará el volumen `people_data` junto con los contenedores. Sólo ejecutar cuando se desee eliminar los datos almacenados.
+
+## Endpoints
+
+### Obtener datos de RUC por número
+
+```bash
+curl -X 'GET' \
+  'http://127.0.0.1:3000/?ruc=80009735' \
+  -H 'accept: application/json'
+```
+
+Respuesta:
+
+```json
+{
+  "ruc": "80009735",
+  "razonsocial": "ADMINISTRACION NACIONAL DE ELECTRICIDAD - ANDE",
+  "tipo": "J",
+  "categoria": "GRANDE",
+  "dv": "1",
+  "estado": "ACTIVO"
+}
+```
+
+### Búsqueda por número de RUC o nombre de contribuyente
+
+```bash
+curl -X 'GET' \
+  'http://127.0.0.1:3000/search?query=80009735' \
+  -H 'accept: application/json'
+```
+
+Respuesta:
+
+```json
+[
+  {
+    "ruc": "80009735",
+    "razonsocial": "ADMINISTRACION NACIONAL DE ELECTRICIDAD - ANDE",
+    "tipo": "J",
+    "categoria": "GRANDE",
+    "dv": "1",
+    "estado": "ACTIVO"
+  }
+]
+```
